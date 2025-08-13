@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
             LocationTrackingAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Android",
+                        name = "Raj Dangol",
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -42,6 +42,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     LocationTrackingAppTheme {
-        Greeting("Android")
+        Greeting("Raj Dangol")
     }
 }
