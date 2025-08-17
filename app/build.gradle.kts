@@ -7,14 +7,15 @@ plugins {
 android {
     namespace = "com.example.locationtrackingapp"
     compileSdk = 36
+    ndkVersion = "29.0.13846066"
 
     defaultConfig {
-        applicationId = "com.example.locationtrackingapp"
-        minSdk = 24
+        applicationId = "com.locationtrackingapp.myapp"
+        minSdk = 29
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
+        ndkVersion = "29.0.13846066"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -37,6 +38,7 @@ android {
     buildFeatures {
         compose = true
     }
+    buildToolsVersion = "36.0.0"
 }
 
 dependencies {

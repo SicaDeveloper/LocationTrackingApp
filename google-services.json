@@ -1,0 +1,38 @@
+{
+  "project_info": {
+    "project_number": "540601564447",
+    "project_id": "locationtrackingappandroid",
+    "storage_bucket": "locationtrackingappandroid.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:540601564447:android:dce6755945a1cd2c7c042a",
+        "android_client_info": {
+          "package_name": "com.locationtrackingapp.myapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "540601564447-r9i44iec6a2js245najr4bf2pe9f347q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.locationtrackingapp.myapp",
+            "certificate_hash": "00b1a531566b1a81430db42c9871e84c68d2149a"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdvXLf3fvGTJRiEqITfQuaIoF0S10OIPM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
