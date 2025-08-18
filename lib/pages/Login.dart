@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'; // Added import
 
@@ -28,7 +29,7 @@ class GoogleSignInPage extends StatefulWidget {
 class GoogleSignInPageState extends State<GoogleSignInPage> {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email'],
-    serverClientId: '540601564447-76guf1lu820nedop78npcm89avt7ic8v.apps.googleusercontent.com', // Or webClientId
+    serverClientId: dotenv.env["SERVERCLIENTID"], // Or webClientId
   );
 
   GoogleSignInAccount? _currentUser;
@@ -134,13 +135,6 @@ class GoogleSignInPageState extends State<GoogleSignInPage> {
 
   Future<void> signOut() async {
     await _handleSignOut();
-  }
-
-  Future<void> silentSignIn() async {
-    await _googleSignIn.signInSilently().catchError((error) {
-      // It's normal for signInSilently to fail if there's no previous session.
-      debugPrint("Google silent sign-in error (this can be normal): $error");
-    });
   }
 
   @override

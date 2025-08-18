@@ -1,30 +1,83 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:locationtrackingapp/pages/Home.dart';
 import 'package:locationtrackingapp/pages/Login.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
-// ----------------------------------------------------
-// 1. Declare GoogleSignIn as a top-level variable here.
-//    This makes it accessible throughout the app.
-//    Replace 'YOUR_GOOGLE_CLIENT_ID' with your actual ID.
-// ----------------------------------------------------
-final GoogleSignIn googleSignIn = GoogleSignIn(
-  clientId: 'YOUR_GOOGLE_CLIENT_ID',
-);
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+// Your provider class to manage authentication state
+class AuthProvider with ChangeNotifier {
+  final SupabaseClient _supabaseClient = Supabase.instance.client;
 
-  await Supabase.initialize(
-    url: 'https://oscapbqjirbscyhjmhjm.supabase.co',
-    anonKey: 'sb_publishable_RGxXT9799AFwMCHJzxrvVg_Przqx5r5',
-  );
-
-  runApp(const MyApp());
+  SupabaseClient get supabaseClient => _supabaseClient;
 }
 
-final supabaseClient = Supabase.instance.client;
+// A new widget to handle the asynchronous initialization
+class AppInitializer extends StatefulWidget {
+  const AppInitializer({super.key});
+
+  @override
+  State<AppInitializer> createState() => _AppInitializerState();
+}
+
+class _AppInitializerState extends State<AppInitializer> {
+  // A state variable to track if Supabase is initialized
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start the asynchronous initialization in initState
+    _initializeSupabase();
+  }
+
+  Future<void> _initializeSupabase() async {
+    try {
+      // Supabase initialization call
+      await Supabase.initialize(
+        url: dotenv.env["SUPABASEBASEURL"]!,
+        anonKey: dotenv.env["SUPABASEANONKEY"]!,
+      );
+      setState(() {
+        _isInitialized = true;
+      });
+    } catch (e) {
+      // Handle initialization errors gracefully
+      if (kDebugMode) {
+        print('Error initializing Supabase: $e');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isInitialized) {
+      // If initialized, show the main app wrapped in the AuthProvider
+      return ChangeNotifierProvider(
+        create: (context) => AuthProvider(),
+        child: const MyApp(),
+      );
+    } else {
+      // If not initialized, show a loading indicator
+      return const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+  }
+}
+
+Future<void> main() async {
+
+  WidgetsFlutterBinding.ensureInitialized();
+  // We no longer call Supabase.initialize here
+  await dotenv.load(fileName: ".env");
+  runApp(const AppInitializer());
+}
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -37,21 +90,16 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // ----------------------------------------------------
-    // 2. This is the new part! We call signInSilently() here.
-    //    It only runs once when the app starts up.
-    // ----------------------------------------------------
-    googleSignIn.signInSilently().catchError((error) {
-      debugPrint("Google silent sign-in error (this can be normal): $error");
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: StreamBuilder<AuthState>(
-        stream: supabaseClient.auth.onAuthStateChange,
+        stream: authProvider.supabaseClient.auth.onAuthStateChange,
         builder: (context, snapshot) {
           // Show a loading indicator while waiting for the auth state
           if (snapshot.connectionState == ConnectionState.waiting) {
