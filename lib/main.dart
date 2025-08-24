@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:locationtrackingapp/pages/Admin.dart';
 import 'package:locationtrackingapp/pages/Home.dart';
 import 'package:locationtrackingapp/pages/Login.dart';
 import 'package:provider/provider.dart';
@@ -110,7 +113,12 @@ class _MyAppState extends State<MyApp> {
 
           final session = snapshot.data?.session;
           if (session != null) {
-            return const HomePage(); // User is logged in
+
+            if(Platform.isWindows){
+              return const AdminPage();
+            } else {
+              return const HomePage();
+            }
           } else {
             return const LoginPage(); // User is not logged in
           }
