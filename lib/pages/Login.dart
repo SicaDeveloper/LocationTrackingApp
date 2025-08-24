@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -88,11 +90,75 @@ class GoogleSignInPageState extends State<GoogleSignInPage> {
     });
   }
 
+  Future<String?> startLocalServerAndWaitForAuthToken() async {
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 3000,shared: true);
+    print('Listening on localhost:${server.port}');
+
+    // Wait for the first request (the redirect from Google)
+    final request = await server.first;
+
+    // Extract query parameters (like the access token or auth code)
+    final uri = request.uri;
+    final authCode = uri.queryParameters['code'];
+    final error = uri.queryParameters['error'];
+
+    // Respond to the browser so the user knows something happened
+    request.response
+      ..statusCode = 200
+      ..headers.set('Content-Type', ContentType.html.mimeType)
+      ..write('<html><body><h2>You can close this window now.</h2></body></html>')
+      ..close();
+
+    await server.close();
+
+    if (error != null) {
+      print('OAuth Error: $error');
+      return null;
+    }
+
+    print('Received auth code: $authCode');
+    return authCode;
+  }
+
+  Future<void> signInWithGoogleForDesktop() async {
+    try {
+      // Start the local server before launching the auth flow
+      final localServerFuture = startLocalServerAndWaitForAuthToken();
+
+      // Start OAuth flow, redirecting to your local server
+      await supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'http://localhost:3000/callback',
+      );
+
+      // Wait for the auth code from the local server
+      final authCode = await localServerFuture;
+
+      if (authCode == null) {
+        debugPrint('No auth code received.');
+        return;
+      }
+
+      await supabase.auth.exchangeCodeForSession(authCode);
+
+      // (Optional) Manually exchange the code for a session using Supabase REST if needed
+      // Most likely, Supabase SDK will handle this automatically on redirect
+    } catch (e) {
+      debugPrint('Error signing in with Google on desktop: $e');
+    }
+  }
+
+
   Future<void> _handleSignIn() async {
     try {
       // Initiates the Google Sign In flow.
       // The onCurrentUserChanged listener will then handle the Supabase sign-in part.
-      await _googleSignIn.signIn();
+      if(Platform.isAndroid) {
+        await _googleSignIn.signIn();
+      }
+      if (Platform.isWindows) {
+        await signInWithGoogleForDesktop();
+      }
     } catch (error) {
       if (mounted) {
         debugPrint('Error initiating Google Sign-In: $error');
